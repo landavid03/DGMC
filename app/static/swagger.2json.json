@@ -1,0 +1,144 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Club API",
+    "description": "API para la gestión de usuarios, vehículos y pólizas de seguro de un club."
+  },
+  "host": "localhost:8080",
+  "basePath": "/api",
+  "schemes": ["http"],
+  "paths": {
+    "/policies/": {
+      "post": {
+        "tags": ["Policies"],
+        "summary": "Crear póliza",
+        "consumes": ["multipart/form-data"],
+        "parameters": [
+          {
+            "name": "vehicle_id",
+            "in": "formData",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "policy_number",
+            "in": "formData",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "expiration_date",
+            "in": "formData",
+            "required": true,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "insurer",
+            "in": "formData",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "policy_file",
+            "in": "formData",
+            "required": true,
+            "type": "file"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Póliza creada exitosamente"
+          },
+          "400": {
+            "description": "Solicitud inválida"
+          }
+        }
+      }
+    },
+    "/policies/{policy_id}": {
+      "put": {
+        "tags": ["Policies"],
+        "summary": "Actualizar póliza",
+        "consumes": ["multipart/form-data"],
+        "parameters": [
+          {
+            "name": "policy_id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          },
+          { "name": "policy_number", "in": "formData", "type": "string" },
+          {
+            "name": "expiration_date",
+            "in": "formData",
+            "type": "string",
+            "format": "date"
+          },
+          { "name": "insurer", "in": "formData", "type": "string" },
+          { "name": "policy_file", "in": "formData", "type": "file" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Póliza actualizada"
+          },
+          "404": {
+            "description": "Póliza no encontrada"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Policies"],
+        "summary": "Eliminar póliza",
+        "parameters": [
+          {
+            "name": "policy_id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Póliza eliminada"
+          },
+          "404": {
+            "description": "No encontrada"
+          }
+        }
+      }
+    },
+    "/policies/vehicle/{vehicle_id}": {
+      "get": {
+        "tags": ["Policies"],
+        "summary": "Obtener póliza de un vehículo",
+        "parameters": [
+          {
+            "name": "vehicle_id",
+            "in": "path",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Póliza encontrada"
+          },
+          "404": {
+            "description": "Vehículo o póliza no encontrada"
+          }
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "Agrega tu JWT token con el prefijo **Bearer**"
+    }
+  },
+  "security": [{ "Bearer": [] }]
+}

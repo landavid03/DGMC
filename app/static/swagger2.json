@@ -1,0 +1,327 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Club API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/static/{filename}": {
+      "get": {
+        "summary": "Serve static files",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "User login",
+        "responses": {
+          "200": {
+            "description": "Login successful"
+          }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "summary": "Get current user",
+        "responses": {
+          "200": {
+            "description": "User info"
+          }
+        }
+      }
+    },
+    "/api/users/": {
+      "get": {
+        "summary": "List users",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create user",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/api/users/{user_id}": {
+      "get": {
+        "summary": "Get user by ID",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update user",
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete user",
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          }
+        }
+      }
+    },
+    "/api/vehicles/": {
+      "get": {
+        "summary": "List vehicles",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create vehicle",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/api/vehicles/user/{user_id}": {
+      "get": {
+        "summary": "Get vehicles by user ID",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/vehicles/{vehicle_id}": {
+      "get": {
+        "summary": "Get vehicle by ID",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update vehicle",
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete vehicle",
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          }
+        }
+      }
+    },
+    "/api/personal-info/": {
+      "get": {
+        "summary": "List personal info",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create personal info",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/api/personal-info/user/{user_id}": {
+      "get": {
+        "summary": "Get personal info by user ID",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/personal-info/{info_id}": {
+      "put": {
+        "summary": "Update personal info",
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete personal info",
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          }
+        }
+      }
+    },
+    "/api/emergency-contacts/user/{user_id}": {
+      "get": {
+        "summary": "Get emergency contacts by user ID",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/emergency-contacts/": {
+      "post": {
+        "summary": "Create emergency contact",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/api/emergency-contacts/{contact_id}": {
+      "put": {
+        "summary": "Update emergency contact",
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete emergency contact",
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          }
+        }
+      }
+    },
+    "/api/insurance-policies/vehicle/{vehicle_id}": {
+      "get": {
+        "summary": "Get policy by vehicle ID",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/insurance-policies/": {
+      "post": {
+        "summary": "Create policy",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/api/insurance-policies/{policy_id}": {
+      "put": {
+        "summary": "Update policy",
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete policy",
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          }
+        }
+      }
+    },
+    "/api/vehicle-images/vehicle/{vehicle_id}": {
+      "get": {
+        "summary": "Get images by vehicle ID",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/vehicle-images/": {
+      "post": {
+        "summary": "Upload vehicle image",
+        "responses": {
+          "201": {
+            "description": "Uploaded"
+          }
+        }
+      }
+    },
+    "/api/vehicle-images/{image_id}": {
+      "put": {
+        "summary": "Update vehicle image",
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete vehicle image",
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          }
+        }
+      }
+    },
+    "/api/docs/dist/{filename}": {
+      "get": {
+        "summary": "Get Swagger UI static files",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/docs/{path}": {
+      "get": {
+        "summary": "Serve Swagger UI path",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
+    "/api/docs/": {
+      "get": {
+        "summary": "Swagger UI entrypoint",
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    }
+  }
+}

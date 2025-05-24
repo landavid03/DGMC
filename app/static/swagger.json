@@ -1,0 +1,2131 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Vehicle Management API",
+    "description": "API for managing vehicles, users, emergency contacts, insurance policies, and personal information",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/api"
+    }
+  ],
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "User login",
+        "description": "Authenticate user and return access token",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserLogin"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful login",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "access_token": {
+                      "type": "string",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": ["auth"],
+        "summary": "Get current user profile",
+        "description": "Returns the profile of the currently authenticated user",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/emergency-contacts/user/{user_id}": {
+      "get": {
+        "tags": ["emergency-contacts"],
+        "summary": "Get user's emergency contacts",
+        "description": "Returns all emergency contacts for a specific user",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "contacts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/EmergencyContact"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/emergency-contacts/": {
+      "post": {
+        "tags": ["emergency-contacts"],
+        "summary": "Create emergency contact",
+        "description": "Create a new emergency contact",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmergencyContact"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Emergency contact created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Contacto de emergencia creado correctamente"
+                    },
+                    "contact": {
+                      "$ref": "#/components/schemas/EmergencyContact"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/emergency-contacts/{contact_id}": {
+      "put": {
+        "tags": ["emergency-contacts"],
+        "summary": "Update emergency contact",
+        "description": "Update an existing emergency contact",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "contact_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmergencyContactUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Emergency contact updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Contacto actualizado correctamente"
+                    },
+                    "contact": {
+                      "$ref": "#/components/schemas/EmergencyContact"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contact not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["emergency-contacts"],
+        "summary": "Delete emergency contact",
+        "description": "Delete an existing emergency contact",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "contact_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Emergency contact deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Contacto eliminado correctamente"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Contact not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/policies/vehicle/{vehicle_id}": {
+      "get": {
+        "tags": ["policies"],
+        "summary": "Get vehicle's insurance policy",
+        "description": "Returns the insurance policy for a specific vehicle",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "vehicle_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "policy": {
+                      "$ref": "#/components/schemas/InsurancePolicy"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Vehicle or policy not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/policies/": {
+      "post": {
+        "tags": ["policies"],
+        "summary": "Create insurance policy",
+        "description": "Create a new insurance policy with file upload",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "policy_file": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "vehicle_id": {
+                    "type": "integer"
+                  },
+                  "policy_number": {
+                    "type": "string"
+                  },
+                  "expiration_date": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "insurer": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "policy_file",
+                  "vehicle_id",
+                  "policy_number",
+                  "expiration_date",
+                  "insurer"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Insurance policy created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Póliza de seguro creada correctamente"
+                    },
+                    "policy": {
+                      "$ref": "#/components/schemas/InsurancePolicy"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Vehicle not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/policies/{policy_id}": {
+      "put": {
+        "tags": ["policies"],
+        "summary": "Update insurance policy",
+        "description": "Update an existing insurance policy",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "policy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "policy_file": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "policy_number": {
+                    "type": "string"
+                  },
+                  "expiration_date": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "insurer": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Insurance policy updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Póliza actualizada correctamente"
+                    },
+                    "policy": {
+                      "$ref": "#/components/schemas/InsurancePolicy"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Policy not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["policies"],
+        "summary": "Delete insurance policy",
+        "description": "Delete an existing insurance policy",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "policy_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Insurance policy deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Póliza eliminada correctamente"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Policy not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/personal-info/": {
+      "get": {
+        "tags": ["personal-info"],
+        "summary": "Get all personal info (Monitor only)",
+        "description": "Returns all personal information (only accessible by monitors)",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "personal_info": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PersonalInfo"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["personal-info"],
+        "summary": "Create personal info",
+        "description": "Create personal information for the current user",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonalInfo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Personal info created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Información personal creada correctamente"
+                    },
+                    "personal_info": {
+                      "$ref": "#/components/schemas/PersonalInfo"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/personal-info/user/{user_id}": {
+      "get": {
+        "tags": ["personal-info"],
+        "summary": "Get user's personal info",
+        "description": "Returns personal information for a specific user",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "personal_info": {
+                      "$ref": "#/components/schemas/PersonalInfo"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Personal info not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/personal-info/{info_id}": {
+      "put": {
+        "tags": ["personal-info"],
+        "summary": "Update personal info",
+        "description": "Update existing personal information",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "info_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonalInfoUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Personal info updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Información personal actualizada correctamente"
+                    },
+                    "personal_info": {
+                      "$ref": "#/components/schemas/PersonalInfo"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Personal info not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["personal-info"],
+        "summary": "Delete personal info (Admin only)",
+        "description": "Delete personal information (only accessible by admins)",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "info_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Personal info deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Información personal eliminada correctamente"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Personal info not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/": {
+      "get": {
+        "tags": ["users"],
+        "summary": "Get all users (Admin only)",
+        "description": "Returns all users (only accessible by admins)",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "users": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/User"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["users"],
+        "summary": "Create user (Admin only)",
+        "description": "Create a new user (only accessible by admins)",
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Usuario creado exitosamente"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{user_id}": {
+      "get": {
+        "tags": ["users"],
+        "summary": "Get user by ID",
+        "description": "Returns a single user",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["users"],
+        "summary": "Update user",
+        "description": "Update an existing user",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Usuario actualizado correctamente"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["users"],
+        "summary": "Delete user (Admin only)",
+        "description": "Delete an existing user (only accessible by admins)",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Usuario eliminado correctamente"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vehicle-images/vehicle/{vehicle_id}": {
+      "get": {
+        "tags": ["vehicle-images"],
+        "summary": "Get vehicle's images",
+        "description": "Returns all images for a specific vehicle",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "vehicle_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "images": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/VehicleImage"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Vehicle not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vehicles/": {
+      "get": {
+        "summary": "Obtener todos los vehículos",
+        "tags": ["Vehicles"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Lista de vehículos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "vehicles": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Vehicle" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Crear vehículo",
+        "tags": ["Vehicles"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Vehicle" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Vehículo creado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "message": { "type": "string" },
+                    "vehicle": { "$ref": "#/components/schemas/Vehicle" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vehicles/user/{user_id}": {
+      "get": {
+        "summary": "Obtener vehículos por usuario",
+        "tags": ["Vehicles"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de vehículos del usuario",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "vehicles": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Vehicle" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vehicles/{vehicle_id}": {
+      "get": {
+        "summary": "Obtener vehículo por ID",
+        "tags": ["Vehicles"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "vehicle_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Vehículo encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "vehicle": { "$ref": "#/components/schemas/Vehicle" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Actualizar vehículo",
+        "tags": ["Vehicles"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "vehicle_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/VehicleUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Vehículo actualizado correctamente"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Eliminar vehículo",
+        "tags": ["Vehicles"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "vehicle_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Vehículo eliminado correctamente"
+          }
+        }
+      }
+    },
+    "/vehicle-images/": {
+      "post": {
+        "summary": "Subir imagen de vehículo",
+        "tags": ["Vehicle Images"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "vehicle_id": {
+                    "type": "integer"
+                  },
+                  "description": {
+                    "type": "string"
+                  }
+                },
+                "required": ["image", "vehicle_id"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Imagen subida correctamente"
+          }
+        }
+      }
+    },
+    "/vehicle-images/vehicle/{vehicle_id}": {
+      "get": {
+        "summary": "Obtener imágenes de un vehículo",
+        "tags": ["Vehicle Images"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "vehicle_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de imágenes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "images": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/VehicleImage" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vehicle-images/{image_id}": {
+      "put": {
+        "summary": "Actualizar imagen de vehículo",
+        "tags": ["Vehicle Images"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "description": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "image_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Imagen actualizada correctamente"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Eliminar imagen de vehículo",
+        "tags": ["Vehicle Images"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "image_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Imagen eliminada correctamente"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "EmergencyContact": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "readOnly": true },
+          "user_id": { "type": "integer" },
+          "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "relationship": { "type": "string", "minLength": 1, "maxLength": 50 },
+          "phone_number": { "type": "string", "minLength": 7, "maxLength": 20 },
+          "alternative_phone": { "type": "string", "maxLength": 20 },
+          "email": { "type": "string", "format": "email" },
+          "notes": { "type": "string" },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          }
+        },
+        "required": ["user_id", "name", "relationship", "phone_number"]
+      },
+      "EmergencyContactUpdate": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "relationship": { "type": "string", "minLength": 1, "maxLength": 50 },
+          "phone_number": { "type": "string", "minLength": 7, "maxLength": 20 },
+          "alternative_phone": { "type": "string", "maxLength": 20 },
+          "email": { "type": "string", "format": "email" },
+          "notes": { "type": "string" }
+        }
+      },
+      "InsurancePolicy": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "readOnly": true },
+          "vehicle_id": { "type": "integer" },
+          "policy_number": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "company": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "start_date": { "type": "string", "format": "date" },
+          "end_date": { "type": "string", "format": "date" },
+          "coverage_type": { "type": "string", "maxLength": 50 },
+          "pdf_file_path": { "type": "string", "maxLength": 255 },
+          "notes": { "type": "string" },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          }
+        },
+        "required": [
+          "vehicle_id",
+          "policy_number",
+          "company",
+          "start_date",
+          "end_date"
+        ]
+      },
+      "InsurancePolicyUpdate": {
+        "type": "object",
+        "properties": {
+          "policy_number": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50
+          },
+          "company": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "start_date": { "type": "string", "format": "date" },
+          "end_date": { "type": "string", "format": "date" },
+          "coverage_type": { "type": "string", "maxLength": 50 },
+          "pdf_file_path": { "type": "string", "maxLength": 255 },
+          "notes": { "type": "string" }
+        }
+      },
+      "PersonalInfo": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "readOnly": true },
+          "user_id": { "type": "integer" },
+          "first_name": { "type": "string", "minLength": 1, "maxLength": 50 },
+          "last_name": { "type": "string", "minLength": 1, "maxLength": 50 },
+          "age": { "type": "integer", "minimum": 18, "maximum": 120 },
+          "blood_type": {
+            "type": "string",
+            "enum": ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
+          },
+          "address": { "type": "string", "maxLength": 200 },
+          "city": { "type": "string", "maxLength": 50 },
+          "state": { "type": "string", "maxLength": 50 },
+          "postal_code": { "type": "string", "maxLength": 20 },
+          "country": { "type": "string", "maxLength": 50 },
+          "location": { "type": "string" },
+          "address": { "type": "string" },
+          "latitude": { "type": "number" },
+          "longitude": { "type": "number" },
+          "allergies": { "type": "string" },
+          "medical_notes": { "type": "string" },
+          "phone_number": { "type": "string", "maxLength": 20 },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          }
+        },
+        "required": ["user_id", "first_name", "last_name", "age"]
+      },
+      "PersonalInfoUpdate": {
+        "type": "object",
+        "properties": {
+          "first_name": { "type": "string", "minLength": 1, "maxLength": 50 },
+          "last_name": { "type": "string", "minLength": 1, "maxLength": 50 },
+          "age": { "type": "integer", "minimum": 18, "maximum": 120 },
+          "blood_type": {
+            "type": "string",
+            "enum": ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
+          },
+          "address": { "type": "string", "maxLength": 200 },
+          "city": { "type": "string", "maxLength": 50 },
+          "state": { "type": "string", "maxLength": 50 },
+          "postal_code": { "type": "string", "maxLength": 20 },
+          "country": { "type": "string", "maxLength": 50 },
+          "latitude": { "type": "number" },
+          "longitude": { "type": "number" },
+          "allergies": { "type": "string" },
+          "medical_notes": { "type": "string" },
+          "phone_number": { "type": "string", "maxLength": 20 }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "readOnly": true },
+          "username": { "type": "string", "minLength": 3, "maxLength": 50 },
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string", "minLength": 8, "writeOnly": true },
+          "role": {
+            "type": "string",
+            "enum": ["admin", "monitor", "user"],
+            "default": "user"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "is_active": { "type": "boolean", "readOnly": true }
+        },
+        "required": ["username", "email", "password"]
+      },
+      "UserUpdate": {
+        "type": "object",
+        "properties": {
+          "username": { "type": "string", "minLength": 3, "maxLength": 50 },
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string", "minLength": 8, "writeOnly": true },
+          "role": { "type": "string", "enum": ["admin", "monitor", "user"] }
+        }
+      },
+      "UserLogin": {
+        "type": "object",
+        "properties": {
+          "username": { "type": "string" , "example": "admin"},
+          "email": { "type": "string" , "example": "admin@example.com"},
+          "password_hash": { "type": "string", "writeOnly": true , "example": "admin"}
+        },
+        "required": ["username", "password","email"]
+      },
+      "UserCreate": {
+  "type": "object",
+  "properties": {
+    "username": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 50,
+      "example": "johndoe"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "example": "johndoe@example.com"
+    },
+    "password": {
+      "type": "string",
+      "minLength": 8,
+      "writeOnly": true,
+      "example": "securePassword123"
+    },
+    "role": {
+      "type": "string",
+      "enum": ["admin", "monitor", "user"],
+      "example": "user"
+    }
+  },
+  "required": ["username", "email", "password", "role"]
+},
+      "Vehicle": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "readOnly": true },
+          "user_id": { "type": "integer" },
+          "make": { "type": "string", "minLength": 1, "maxLength": 50 },
+          "model": { "type": "string", "minLength": 1, "maxLength": 50 },
+          "year": { "type": "integer" },
+          "color": { "type": "string", "minLength": 1, "maxLength": 50 },
+          "license_plate": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20
+          },
+          "vin": { "type": "string", "maxLength": 50 },
+          "description": { "type": "string" },
+          "notes": { "type": "string" },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          }
+        },
+        "required": [
+          "user_id",
+          "make",
+          "model",
+          "year",
+          "color",
+          "license_plate"
+        ]
+      },
+      "VehicleUpdate": {
+        "type": "object",
+        "properties": {
+          "make": { "type": "string", "minLength": 1, "maxLength": 50 },
+          "model": { "type": "string", "minLength": 1, "maxLength": 50 },
+          "year": { "type": "integer" },
+          "color": { "type": "string", "minLength": 1, "maxLength": 50 },
+          "license_plate": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20
+          },
+          "vin": { "type": "string", "maxLength": 50 },
+          "description": { "type": "string" },
+          "notes": { "type": "string" }
+        }
+      },
+      "VehicleImage": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "readOnly": true },
+          "vehicle_id": { "type": "integer" },
+          "image_path": { "type": "string", "minLength": 1, "maxLength": 255 },
+          "description": { "type": "string", "maxLength": 255 },
+          "is_primary": { "type": "boolean", "default": false },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          }
+        },
+        "required": ["vehicle_id", "image_path"]
+      },
+      "VehicleImageUpdate": {
+        "type": "object",
+        "properties": {
+          "description": { "type": "string", "maxLength": 255 },
+          "is_primary": { "type": "boolean" }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Invalid request parameters"
+          },
+          "message": {
+            "type": "string",
+            "example": "The field 'email' is required."
+          },
+          "status_code": {
+            "type": "integer",
+            "example": 400
+          },
+          "details": {
+            "type": "object",
+            "additionalProperties": true,
+            "example": {
+              "email": "Missing data for required field."
+            }
+          }
+        },
+        "required": ["error", "message", "status_code"]
+      }
+    }
+  }
+}
+
+
+
