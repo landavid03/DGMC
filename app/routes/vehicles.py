@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from app.models.vehicle import Vehicle
 from app.utils.auth import token_required, admin_required, monitor_required
-from app.schemas.vehicle import VehiclesSchema, VehiclesSchema
+from app.schemas.vehicle import VehiclesSchema,VehicleSchema
 from app.services.db_client import db
 from flask_jwt_extended import get_jwt_identity
 
@@ -55,7 +55,12 @@ def get_vehicle(vehicle_id):
 @token_required
 def create_vehicle():
     current_user = get_jwt_identity()
-    data = request.get_json()
+    
+    if request.is_json:
+        data = request.get_json()
+    else:
+        data = request.form.to_dict()
+
 
     # Validar datos
     if not 'make' in data or not 'model' in data or not 'year' in data or not 'color' in data:
@@ -69,13 +74,17 @@ def create_vehicle():
         user_id = data.get('user_id', current_user['id'])
 
     new_vehicle = Vehicle(
-        user_id=user_id,
+        description=data.get('description', ''),
         make=data['make'],
+        color=data['color'],
+        license_plate=data['license_plate'],
         model=data['model'],
         year=data['year'],
-        color=data['color'],
-        license_plate=data.get('license_plate', '')
+        vin=data['vin'],
+        notes=data.get('notes', ''),
+        user_id=data['user_id']
     )
+    vehicle_schema = VehicleSchema()
 
     db.session.add(new_vehicle)
     db.session.commit()
@@ -83,7 +92,7 @@ def create_vehicle():
     return jsonify({
         'success': True,
         'message': 'Vehículo creado correctamente',
-        'vehicle': VehiclesSchema.dump(new_vehicle)
+        'vehicle': vehicle_schema.dump(new_vehicle)
     }), 201
 
 @vehicles_bp.route('/<int:vehicle_id>', methods=['PUT'])
@@ -99,7 +108,10 @@ def update_vehicle(vehicle_id):
     if current_user['role'] == 'user' and vehicle.user_id != current_user['id']:
         return jsonify({'success': False, 'message': 'No autorizado'}), 403
 
-    data = request.get_json()
+    if request.is_json:
+        data = request.get_json()
+    else:
+        data = request.form.to_dict()
 
     # Actualizar campos
     if 'make' in data:
@@ -112,13 +124,20 @@ def update_vehicle(vehicle_id):
         vehicle.color = data['color']
     if 'license_plate' in data:
         vehicle.license_plate = data['license_plate']
+    if 'vin' in data:
+        vehicle.vin = data['vin']
+    if 'notes' in data:
+        vehicle.notes = data['notes']   
+    if 'description' in data:
+        vehicle.description = data['description']
 
     db.session.commit()
+    vehicle_schema = VehicleSchema()
 
     return jsonify({
         'success': True,
         'message': 'Vehículo actualizado correctamente',
-        'vehicle': VehiclesSchema.dump(vehicle)
+        'vehicle': vehicle_schema.dump(vehicle)
     }), 200
 
 @vehicles_bp.route('/<int:vehicle_id>', methods=['DELETE'])

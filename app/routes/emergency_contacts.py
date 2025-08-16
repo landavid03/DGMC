@@ -11,12 +11,13 @@ contacts_bp = Blueprint('emergency_contacts', __name__, url_prefix='/api/emergen
 @token_required
 def get_user_contacts(user_id):
     # Verificar permisos
+    print("Get contacts by user ID")
     current_user = get_jwt_identity()
     if current_user['role'] == 'user' and current_user['id'] != user_id:
         return jsonify({'success': False, 'message': 'No autorizado'}), 403
 
     contacts = EmergencyContact.query.filter_by(user_id=user_id).all()
-
+    print(contacts)
     return jsonify({
         'success': True,
         'contacts': EmergencyContactsSchema.dump(contacts)
@@ -29,7 +30,7 @@ def create_contact():
     data = request.get_json()
 
     # Validar datos
-    if not 'name' in data or not 'phone' in data or not 'relationship' in data:
+    if not 'name' in data or not 'phone_number' in data or not 'relationship' in data:
         return jsonify({'success': False, 'message': 'Faltan campos requeridos'}), 400
 
     # Si es un usuario normal, solo puede crear contactos para sí mismo
@@ -40,19 +41,23 @@ def create_contact():
         user_id = data.get('user_id', current_user['id'])
 
     new_contact = EmergencyContact(
-        user_id=user_id,
-        name=data['name'],
-        phone=data['phone'],
-        relationship=data['relationship']
+    user_id=user_id,
+    name=data.get('name', ''),
+    relationship=data.get('relationship', ''),
+    phone_number=data.get('phone_number', ''),
+    alternative_phone=data.get('alternative_phone'),
+    email=data.get('email'),
+    notes=data.get('notes')
     )
 
     db.session.add(new_contact)
     db.session.commit()
+    emergency_contact_schema = EmergencyContactSchema()
 
     return jsonify({
         'success': True,
         'message': 'Contacto de emergencia creado correctamente',
-        'contact': EmergencyContactSchema.dump(new_contact)
+        'contact': emergency_contact_schema.dump(new_contact)
     }), 201
 
 @contacts_bp.route('/<int:contact_id>', methods=['PUT'])
@@ -77,13 +82,22 @@ def update_contact(contact_id):
         contact.phone = data['phone']
     if 'relationship' in data:
         contact.relationship = data['relationship']
+    if 'phone_number' in data:
+        contact.phone_number = data['phone_number']
+    if 'alternative_phone' in data:
+        contact.alternative_phone = data['alternative_phone']
+    if 'email' in data:
+        contact.email = data['email']
+    if 'notes' in data:
+        contact.notes = data['notes']   
 
     db.session.commit()
+    emergency_contact_schema = EmergencyContactSchema()
 
     return jsonify({
         'success': True,
         'message': 'Contacto actualizado correctamente',
-        'contact': EmergencyContactSchema.dump(contact)
+        'contact': emergency_contact_schema.dump(contact)
     }), 200
 
 @contacts_bp.route('/<int:contact_id>', methods=['DELETE'])

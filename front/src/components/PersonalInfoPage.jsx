@@ -1,11 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import { MapPin, Locate, AlertCircle } from "lucide-react";
+
 import { useAuth } from "../context/AuthContext";
 const API_URL = process.env.REACT_APP_API_URL;
 
 const PersonalInfoPage = () => {
-  const { user, token } = useAuth(); // Obtener token del contexto
+  const { user, token } = useAuth();
   const [info, setInfo] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [showMap, setShowMap] = useState(false);
+  const mapInstanceRef = useRef(null);
+  const markerRef = useRef(null);
+  const isCleaningRef = useRef(false); // Para evitar limpiezas múltiples
+
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
@@ -23,22 +31,66 @@ const PersonalInfoPage = () => {
     longitude: null,
   });
 
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setForm((prevForm) => ({
-            ...prevForm,
-            latitude,
-            longitude,
-          }));
-        },
-        (error) => {
-          console.warn("Geolocalización denegada o fallida:", error.message);
-        },
-      );
+  // Actualizar coordenadas
+  const updateCoordinates = (lat, lng) => {
+    setForm((prev) => ({
+      ...prev,
+      latitude: parseFloat(lat.toFixed(6)),
+      longitude: parseFloat(lng.toFixed(6)),
+    }));
+  };
+
+  // Centrar mapa en coordenadas
+  const centerMapOnCoordinates = (lat, lng) => {
+    if (mapInstanceRef.current && markerRef.current && !isCleaningRef.current) {
+      const position = { lat, lng };
+      mapInstanceRef.current.setCenter(position);
+      markerRef.current.setPosition(position);
+      mapInstanceRef.current.setZoom(15);
     }
+  };
+
+  // Obtener ubicación actual
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Tu navegador no soporta geolocalización");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        updateCoordinates(latitude, longitude);
+      },
+      (error) => {
+        console.warn("Geolocalización denegada o fallida:", error.message);
+        let message = "No se pudo obtener la ubicación actual. ";
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            message += "Permiso denegado.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            message += "Ubicación no disponible.";
+            break;
+          case error.TIMEOUT:
+            message += "Tiempo de espera agotado.";
+            break;
+        }
+        alert(message);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000,
+      },
+    );
+  };
+
+  useEffect(() => {
+    const mockFetch = async () => {
+      setLoading(false);
+    };
+    setTimeout(mockFetch, 1000);
   }, []);
 
   useEffect(() => {
@@ -48,7 +100,7 @@ const PersonalInfoPage = () => {
           `${API_URL}/api/personal-info/user/${user.id}`,
           {
             headers: {
-              Authorization: `Bearer ${token}`, // Token del contexto
+              Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
             },
           },
@@ -90,208 +142,359 @@ const PersonalInfoPage = () => {
     } else {
       setLoading(false);
     }
-  }, [user?.id, token]); // Dependencias correctas
+  }, [user?.id, token]);
 
-  const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  // Handlers
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const method = info ? "PUT" : "POST";
-      const url = info
-        ? `${API_URL}/api/personal-info/${info.id}`
-        : `${API_URL}/api/personal-info/`;
+  const handleCoordinateChange = (e) => {
+    const { name, value } = e.target;
+    const numValue = value === "" ? null : parseFloat(value);
 
-      const res = await fetch(url, {
-        method,
+    if (isNaN(numValue) && value !== "") return;
+
+    setForm((prev) => ({ ...prev, [name]: numValue }));
+  };
+
+  // Función para crear nueva información personal
+  const createPersonalInfo = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/personal-info`, {
+        method: "POST",
         headers: {
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Token del contexto
         },
         body: JSON.stringify({
-          ...form,
           user_id: user.id,
+          ...form,
+          age: form.age ? parseInt(form.age) : null,
         }),
       });
 
-      if (!res.ok) throw new Error("Error en la solicitud");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || "Error al crear la información personal",
+        );
+      }
 
-      const updated = await res.json();
-      setInfo(updated);
-      alert("Información guardada correctamente");
+      const data = await response.json();
+      return data;
     } catch (error) {
-      console.error("Error saving personal info:", error);
-      alert("Error al guardar la información.");
+      console.error("Error creating personal info:", error);
+      throw error;
     }
   };
 
-  if (loading) return <div className="p-6">Cargando...</div>;
+  // Función para actualizar información personal existente
+  const updatePersonalInfo = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/personal-info/${info.id}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...form,
+          age: form.age ? parseInt(form.age) : null,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || "Error al actualizar la información personal",
+        );
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error updating personal info:", error);
+      throw error;
+    }
+  };
+
+  const handleSubmit = async () => {
+    setSaving(true);
+
+    try {
+      let result;
+
+      if (info && info.id) {
+        // Actualizar información existente
+        result = await updatePersonalInfo();
+        alert("Información actualizada correctamente");
+      } else {
+        // Crear nueva información
+        result = await createPersonalInfo();
+        alert("Información creada correctamente");
+      }
+
+      // Actualizar el estado local con la respuesta del servidor
+      if (result.personal_info) {
+        setInfo(result.personal_info);
+      }
+    } catch (error) {
+      alert(`Error: ${error.message}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleShowMap = () => {
+    setShowMap(!showMap);
+  };
+
+  if (loading)
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-2">Cargando...</span>
+      </div>
+    );
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
-      <h1 className="text-xl font-light mb-4">Información Personal</h1>
+    <div className="p-6 max-w-4xl mx-auto">
+      <h1 className="text-2xl font-light mb-6">Información Personal</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm mb-1">Nombre(s)</label>
-          <input
-            type="text"
-            name="first_name"
-            value={form.first_name}
-            onChange={handleChange}
-            className="w-full border px-3 py-2 rounded"
-          />
+      <div className="space-y-6">
+        {/* Información básica */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">Nombre(s)</label>
+            <input
+              type="text"
+              name="first_name"
+              value={form.first_name}
+              onChange={handleInputChange}
+              className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Ingresa tu nombre"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Apellido(s)
+            </label>
+            <input
+              type="text"
+              name="last_name"
+              value={form.last_name}
+              onChange={handleInputChange}
+              className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Ingresa tus apellidos"
+            />
+          </div>
         </div>
-        <div>
-          <label className="block text-sm mb-1">Apellido(s)</label>
-          <input
-            type="text"
-            name="last_name"
-            value={form.last_name}
-            onChange={handleChange}
-            className="w-full border px-3 py-2 rounded"
-          />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-2">Edad</label>
+            <input
+              type="number"
+              name="age"
+              value={form.age}
+              onChange={handleInputChange}
+              className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              min="18"
+              max="120"
+              placeholder="Edad"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              Tipo de sangre
+            </label>
+            <select
+              name="blood_type"
+              value={form.blood_type}
+              onChange={handleInputChange}
+              className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Seleccione</option>
+              {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map(
+                (type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ),
+              )}
+            </select>
+          </div>
         </div>
+
         <div>
-          <label className="block text-sm mb-1">Edad</label>
+          <label className="block text-sm font-medium mb-2">Teléfono</label>
           <input
-            type="number"
-            name="age"
-            value={form.age}
-            onChange={handleChange}
-            className="w-full border px-3 py-2 rounded"
-            min="18"
-            max="120"
-          />
-        </div>
-        <div>
-          <label className="block text-sm mb-1">Tipo de sangre</label>
-          <select
-            name="blood_type"
-            value={form.blood_type}
-            onChange={handleChange}
-            className="w-full border px-3 py-2 rounded"
-          >
-            <option value="">Seleccione</option>
-            {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm mb-1">Teléfono</label>
-          <input
-            type="text"
+            type="tel"
             name="phone_number"
             value={form.phone_number}
-            onChange={handleChange}
-            className="w-full border px-3 py-2 rounded"
+            onChange={handleInputChange}
+            className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Número de teléfono"
           />
         </div>
+
+        {/* Dirección */}
         <div>
-          <label className="block text-sm mb-1">Dirección</label>
-          <input
-            type="text"
-            name="address"
-            value={form.address}
-            onChange={handleChange}
-            className="w-full border px-3 py-2 rounded"
-          />
+          <label className="block text-sm font-medium mb-2">Dirección</label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              name="address"
+              value={form.address}
+              onChange={handleInputChange}
+              className="flex-1 border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Dirección completa"
+            />
+          </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label className="block text-sm mb-1">Ciudad</label>
+            <label className="block text-sm font-medium mb-2">Ciudad</label>
             <input
               type="text"
               name="city"
               value={form.city}
-              onChange={handleChange}
-              className="w-full border px-3 py-2 rounded"
+              onChange={handleInputChange}
+              className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Ciudad"
             />
           </div>
           <div>
-            <label className="block text-sm mb-1">Estado</label>
+            <label className="block text-sm font-medium mb-2">Estado</label>
             <input
               type="text"
               name="state"
               value={form.state}
-              onChange={handleChange}
-              className="w-full border px-3 py-2 rounded"
+              onChange={handleInputChange}
+              className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Estado"
             />
           </div>
           <div>
-            <label className="block text-sm mb-1">Código Postal</label>
+            <label className="block text-sm font-medium mb-2">
+              Código Postal
+            </label>
             <input
               type="text"
               name="postal_code"
               value={form.postal_code}
-              onChange={handleChange}
-              className="w-full border px-3 py-2 rounded"
+              onChange={handleInputChange}
+              className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="CP"
             />
           </div>
           <div>
-            <label className="block text-sm mb-1">País</label>
+            <label className="block text-sm font-medium mb-2">País</label>
             <input
               type="text"
               name="country"
               value={form.country}
-              onChange={handleChange}
-              className="w-full border px-3 py-2 rounded"
-            />
-          </div>
-        </div>
-        <div>
-          <label className="block text-sm mb-1">Alergias</label>
-          <textarea
-            name="allergies"
-            value={form.allergies}
-            onChange={handleChange}
-            className="w-full border px-3 py-2 rounded"
-          />
-        </div>
-        <div>
-          <label className="block text-sm mb-1">Notas médicas</label>
-          <textarea
-            name="medical_notes"
-            value={form.medical_notes}
-            onChange={handleChange}
-            className="w-full border px-3 py-2 rounded"
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm mb-1">Latitud</label>
-            <input
-              type="text"
-              name="latitude"
-              value={form.latitude ?? ""}
-              readOnly
-              className="w-full border px-3 py-2 rounded bg-gray-100"
-            />
-          </div>
-          <div>
-            <label className="block text-sm mb-1">Longitud</label>
-            <input
-              type="text"
-              name="longitude"
-              value={form.longitude ?? ""}
-              readOnly
-              className="w-full border px-3 py-2 rounded bg-gray-100"
+              onChange={handleInputChange}
+              className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="País"
             />
           </div>
         </div>
 
-        <button
-          type="submit"
-          className="px-4 py-2 bg-blue-600 text-white rounded"
-        >
-          {info ? "Actualizar" : "Crear"} información
-        </button>
-      </form>
+        {/* Sección de ubicación */}
+        <div className="bg-gray-50 p-6 rounded-lg">
+          <h3 className="text-lg font-medium mb-4 flex items-center">
+            <MapPin className="w-5 h-5 mr-2" />
+            Ubicación
+          </h3>
+
+          <div className="flex flex-wrap gap-2 mb-4">
+            <button
+              type="button"
+              onClick={getCurrentLocation}
+              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <Locate className="w-4 h-4 mr-2" />
+              Usar ubicación actual
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Latitud</label>
+              <input
+                type="number"
+                name="latitude"
+                value={form.latitude ?? ""}
+                onChange={handleCoordinateChange}
+                className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Latitud"
+                step="any"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Longitud</label>
+              <input
+                type="number"
+                name="longitude"
+                value={form.longitude ?? ""}
+                onChange={handleCoordinateChange}
+                className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Longitud"
+                step="any"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Información médica */}
+        <div>
+          <label className="block text-sm font-medium mb-2">Alergias</label>
+          <textarea
+            name="allergies"
+            value={form.allergies}
+            onChange={handleInputChange}
+            rows="3"
+            className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Describe tus alergias conocidas"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-2">
+            Notas médicas
+          </label>
+          <textarea
+            name="medical_notes"
+            value={form.medical_notes}
+            onChange={handleInputChange}
+            rows="3"
+            className="w-full border border-gray-300 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Información médica adicional relevante"
+          />
+        </div>
+
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={saving}
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+          >
+            {saving && (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+            )}
+            {saving
+              ? "Guardando..."
+              : info
+                ? "Actualizar información"
+                : "Crear información"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

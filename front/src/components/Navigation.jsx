@@ -28,20 +28,30 @@ const Navigation = ({
         icon: Car,
         roles: ["admin", "monitor", "user"],
       },
-      { id: "vehicles", label: "My Vehicles", icon: Car, roles: ["user"] },
+      {
+        id: "vehicles",
+        label: "My Vehicles",
+        icon: Car,
+        roles: ["user", "admin", "monitor"]
+      },
       {
         id: "emergency-contacts",
-        label: "Emergency Contacts",
+        label: "My Emergency Contacts",
         icon: Phone,
-        roles: ["user"],
+        roles: ["user", "admin", "monitor"],
       },
       {
         id: "personal-info",
-        label: "Personal Info",
+        label: "My Personal Info",
         icon: User,
-        roles: ["user"],
+        roles: ["user", "admin", "monitor"],
       },
-      { id: "insurance", label: "Insurance", icon: Shield, roles: ["user"] },
+      {
+        id: "insurance",
+        label: "My Insurance",
+        icon: Shield,
+        roles: ["user", "admin", "monitor"]
+      },
     ];
     const admin = [
       { id: "all-users", label: "All Users", icon: Users, roles: ["admin"] },

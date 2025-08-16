@@ -5,10 +5,15 @@ from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from app.services.cloud_storage_client import CloudStorageClient
 import json
+from flask_migrate import Migrate  
+from app.clients.drive import get_drive_service_user
+import os
+
 # Initialize SQLAlchemy
 db = SQLAlchemy()
 # Initialize JWT
 jwt = JWTManager()
+migrate = Migrate() 
 
 cloud_storage_client = CloudStorageClient()
 
@@ -30,10 +35,17 @@ def create_app(config_name='development'):
     app.config.from_object(get_config())
 
     cloud_storage_client.init_app(app)
-
+    sa_path = os.getenv("GOOGLE_DRIVE_SA_JSON")  # ruta al JSON del Service Account
+    if not sa_path:
+        raise RuntimeError("Falta GOOGLE_DRIVE_SA_JSON en el entorno")
+    app.config["GDRIVE_SERVICE"] = get_drive_service_user(
+        client_secret_path=os.getenv("GOOGLE_OAUTH_CLIENT_SECRET", "client_secret.json"),
+        token_path=os.getenv("GOOGLE_OAUTH_TOKEN_PATH", "token.json"),
+    )
     # Initialize extensions
     db.init_app(app)
     jwt.init_app(app)
+    migrate.init_app(app, db)
     CORS(app)
 
     # Register error handlers
@@ -63,7 +75,7 @@ def create_app(config_name='development'):
 
 def register_blueprints(app):
     """Register all blueprints for application"""
-    from app.routes.auth import auth_bp
+    from app.routes.auth import auth_bp 
     from app.routes.users import users_bp
     from app.routes.vehicles import vehicles_bp
     from app.routes.personal_info import personal_info_bp

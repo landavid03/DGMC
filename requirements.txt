@@ -11,3 +11,6 @@ Werkzeug==2.3.7
 gunicorn==21.2.0
 pymysql==1.1.0
 cryptography==41.0.3
+Flask-Migrate
+google-auth-oauthlib
+google-api-python-client

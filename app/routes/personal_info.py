@@ -94,23 +94,18 @@ def update_personal_info(info_id):
     data = request.get_json()
 
     # Actualizar campos
-    if 'age' in data:
-        personal_info.age = data['age']
-    if 'blood_type' in data:
-        personal_info.blood_type = data['blood_type']
-    if 'location' in data:
-        personal_info.location = data['location']
-    if 'address' in data:
-        personal_info.address = data['address']
-    if 'allergies' in data:
-        personal_info.allergies = data['allergies']
+    # Actualizar dinámicamente los campos si existen en el modelo
+    for key, value in data.items():
+        if hasattr(personal_info, key):
+            setattr(personal_info, key, value)
 
     db.session.commit()
+    schema = PersonalInfoSchema()
 
     return jsonify({
         'success': True,
         'message': 'Información personal actualizada correctamente',
-        'personal_info': PersonalInfosSchema.dump(personal_info)
+        'personal_info': schema.dump(personal_info)
     }), 200
 
 @personal_info_bp.route('/<int:info_id>', methods=['DELETE'])

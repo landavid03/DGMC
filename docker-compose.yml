@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./back
+    container_name: backend
+    ports:
+      - "5000:5000"
+    environment:
+      - GOOGLE_DRIVE_SA_JSON=/Users/landavid03/Documents/proyects/DGMC/servacc.json
+      - GOOGLE_OAUTH_TOKEN_PATH=token.json
+      - GOOGLE_OAUTH_CLIENT_SECRET=/Users/landavid03/Documents/proyects/DGMC/client_secret2.json
+    depends_on:
+      - db
+    command: python run.py
+
+  frontend:
+    build:
+      context: ./front
+    container_name: frontend
+    ports:
+      - "5173:5173"

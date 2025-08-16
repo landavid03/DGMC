@@ -32,15 +32,6 @@ const LoginScreen = () => {
           {error && <div className="bg-red-50 border-l-4 border-red-500 p-4 text-red-700">{error}</div>}
           <div className="space-y-4">
             <input
-              type="text"
-              name="username"
-              placeholder="Username"
-              required
-              className="w-full px-4 py-2 border-b border-gray-300 bg-transparent"
-              value={credentials.username}
-              onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
-            />
-            <input
               type="email"
               name="email"
               placeholder="Email"

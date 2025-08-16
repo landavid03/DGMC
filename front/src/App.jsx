@@ -6,7 +6,8 @@ import Dashboard from "./components/Dashboard";
 import VehiclesPage from "./components/VehiclesPage";
 import EmergencyContactsPage from "./components/EmergencyContactsPage";
 import PersonalInfoPage from "./components/PersonalInfoPage";
-
+import InsurancePage from "./components/Insurance"; 
+import AdminVehiclesPage from "./components/AdminVehiclesPage";
 const MainApp = () => {
   const { user, loading } = useAuth();
   const [currentPage, setCurrentPage] = useState("dashboard");
@@ -16,7 +17,6 @@ const MainApp = () => {
   if (!user) return <LoginScreen />;
 
   const renderPage = () => {
-    console.log(currentPage);
     switch (currentPage) {
       case "dashboard":
         return <Dashboard />;
@@ -26,6 +26,10 @@ const MainApp = () => {
         return <EmergencyContactsPage />;
       case "personal-info":
         return <PersonalInfoPage />;
+      case "insurance":
+          return <InsurancePage />;
+      case "all-vehicles":
+        return <AdminVehiclesPage />;
       default:
         return <Dashboard />;
     }

@@ -19,6 +19,7 @@ class User(db.Model):
     personal_info = db.relationship('PersonalInfo', backref='user', uselist=False, cascade='all, delete-orphan')
     vehicles = db.relationship('Vehicle', backref='owner', lazy=True, cascade='all, delete-orphan')
     emergency_contacts = db.relationship('EmergencyContact', backref='user', lazy=True, cascade='all, delete-orphan')
+    insurance_policy = db.relationship('InsurancePolicy', backref='poliza', uselist=False, cascade='all, delete-orphan')
 
     def __init__(self, username, email, role='user'):
         self.username = username

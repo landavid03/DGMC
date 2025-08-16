@@ -22,8 +22,12 @@ def generate_token(user_id, username, role):
 
 def token_required(f):
     """Decorator to require a valid JWT token"""
+
     @wraps(f)
     def decorated(*args, **kwargs):
+        if request.method == "OPTIONS":
+            return jsonify({"ok": True}), 204
+        
         try:
             # Verify token
             print("Tratando de verificar auth")
@@ -36,13 +40,9 @@ def token_required(f):
             if not current_user:
                 print("No se pudo verificar")
                 return jsonify({'error': 'User not found'}), 404
-            print("Paso user")
 
             # Store current user in Flask g object
             g.current_user = current_user
-            print("Return")
-            print(args)
-            print(kwargs)
             return f(*args, **kwargs)
         except Exception as e:
             print(e)
