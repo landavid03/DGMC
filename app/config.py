@@ -44,17 +44,35 @@ class TestingConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///test.db'
 
 class ProductionConfig(Config):
-    # Use Cloud SQL for production
-    def __init__(self):
-        if os.environ.get('DB_SOCKET_DIR', None):
-            # Cloud Run environment
-            instance_connection_name = os.environ.get('INSTANCE_CONNECTION_NAME')
-            socket_dir = os.environ.get('DB_SOCKET_DIR', '/cloudsql')
-            cloud_sql_connection_name = f"{socket_dir}/{instance_connection_name}"
-            self.SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{self.DB_USER}:{self.DB_PASS}@/{self.DB_NAME}?unix_socket={cloud_sql_connection_name}"
-        else:
-            # Direct connection (for development of production environment)
-            self.SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}/{self.DB_NAME}"
+
+    driver = "ODBC Driver 17 for SQL Server"
+
+    if os.environ.get("DB_HOST"):
+        # Producción en Cloud Run
+        self.SQLALCHEMY_DATABASE_URI = (
+            f"mssql+pyodbc://{self.DB_USER}:{self.DB_PASS}"
+            f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+            f"?driver={driver}"
+        )
+    else:
+        # Desarrollo local
+        self.SQLALCHEMY_DATABASE_URI = (
+            f"mssql+pyodbc://{self.DB_USER}:{self.DB_PASS}"
+            f"@localhost:{self.DB_PORT}/{self.DB_NAME}"
+            f"?driver={driver}"
+        )
+
+    # # Use Cloud SQL for production
+    # def __init__(self):
+    #     if os.environ.get('DB_SOCKET_DIR', None):
+    #         # Cloud Run environment
+    #         instance_connection_name = os.environ.get('INSTANCE_CONNECTION_NAME')
+    #         socket_dir = os.environ.get('DB_SOCKET_DIR', '/cloudsql')
+    #         cloud_sql_connection_name = f"{socket_dir}/{instance_connection_name}"
+    #         self.SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{self.DB_USER}:{self.DB_PASS}@/{self.DB_NAME}?unix_socket={cloud_sql_connection_name}"
+    #     else:
+    #         # Direct connection (for development of production environment)
+    #         self.SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}/{self.DB_NAME}"
 
 # Select configuration based on environment
 config_dict = {

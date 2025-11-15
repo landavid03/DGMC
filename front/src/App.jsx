@@ -8,6 +8,7 @@ import EmergencyContactsPage from "./components/EmergencyContactsPage";
 import PersonalInfoPage from "./components/PersonalInfoPage";
 import InsurancePage from "./components/Insurance"; 
 import AdminVehiclesPage from "./components/AdminVehiclesPage";
+import UsersPage from "./components/UsersPage";
 const MainApp = () => {
   const { user, loading } = useAuth();
   const [currentPage, setCurrentPage] = useState("dashboard");
@@ -29,7 +30,9 @@ const MainApp = () => {
       case "insurance":
           return <InsurancePage />;
       case "all-vehicles":
-        return <AdminVehiclesPage />;
+            return <AdminVehiclesPage />;
+      case "all-users":
+            return <UsersPage />;
       default:
         return <Dashboard />;
     }

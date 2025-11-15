@@ -1,0 +1,59 @@
+https://chatgpt.com/c/6917555d-99dc-8332-a81a-b75a44f6bc5b
+
+
+1) Generar la build de producción
+
+En la carpeta de tu proyecto React:
+
+# desde la raíz del proyecto
+npm install
+npm run build
+
+
+Esto crea la carpeta build/ (o dist/ si tu setup es diferente). Confirma que contiene index.html, static/, etc.
+
+2) Crear el bucket en Google Cloud Storage
+
+Puedes crear un bucket público y regional/multi-regional según tu necesidad. Ejemplo:
+
+# selecciona el proyecto
+gcloud config set project PROJECT_ID
+
+# crea el bucket (nombres únicos globalmente)
+gsutil mb -p PROJECT_ID -c STANDARD -l US-CENTRAL1 gs://mi-frontend-bucket
+
+
+-l = location (elige la región más cercana a tus usuarios).
+
+3) Subir la build al bucket
+
+Sincroniza la carpeta build con el bucket:
+
+gsutil -m rsync -r build gs://mi-frontend-bucket
+
+
+-m permite paralelo para mayor velocidad.
+
+4) Hacer público el contenido (lectura pública)
+
+Para que cualquiera pueda acceder al frontend:
+
+gsutil iam ch allUsers:objectViewer gs://mi-frontend-bucket
+
+
+Esto da permiso de lectura a todos los objetos del bucket (recomendado para hosting público).
+
+Alternativa (menos recomendable): usar gsutil acl en vez de iam.
+
+5) Configurar comportamiento de sitio web para SPA (React Router)
+
+Para que las rutas manejadas por React funcionen (fallback a index.html):
+
+gsutil web set -m index.html -e index.html gs://mi-frontend-bucket
+
+
+Esto le dice al bucket que use index.html como página principal y página de error (útil para SPA).
+
+
+
+Para abrir elñl front hay que busccar el index.html en el buckket

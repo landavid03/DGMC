@@ -1,0 +1,76 @@
+Plan A (rápido): Build local + push a Artifact Registry + deploy
+
+Variables (ajuste exacto a lo tuyo):
+
+PROJECT_ID="sound-proposal-447100-t1"
+REGION="us-central1"
+REPO="containers"
+SERVICE_NAME="backend"
+IMAGE_TAG="v1"
+
+
+Autenticación y proyecto:
+
+gcloud auth login
+gcloud config set account landavid03escom@gmail.com
+gcloud config set project ${PROJECT_ID}
+
+
+Habilita APIs y (si aplica) vincula billing:
+
+gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
+# Verifica billing:
+gcloud beta billing projects describe ${PROJECT_ID}
+# Si no está vinculado, hay que ligarlo en consola o con:
+# gcloud beta billing projects link ${PROJECT_ID} --billing-account=XXXXXX-XXXXXX-XXXXXX
+
+
+Crea el repositorio de Artifact Registry (idempotente):
+
+gcloud artifacts repositories create ${REPO} \
+  --repository-format=docker \
+  --location=${REGION} \
+  --description="Backend images" 2>/dev/null || true
+
+
+Configura Docker contra Artifact Registry y haz build/push local:
+
+gcloud auth configure-docker ${REGION}-docker.pkg.dev -q
+
+# Estando en la carpeta donde está tu Dockerfile y run.py:
+docker build -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/${SERVICE_NAME}:${IMAGE_TAG} .
+docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/${SERVICE_NAME}:${IMAGE_TAG}
+
+
+Deploy a Cloud Run:
+
+# Si tu run.py expone Flask/Django (WSGI):
+gcloud run deploy ${SERVICE_NAME} \
+  --image ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/${SERVICE_NAME}:${IMAGE_TAG} \
+  --region ${REGION} \
+  --allow-unauthenticated \
+  --port 8080 \
+  --set-env-vars=APP_MODULE="run:app",WORKER_CLASS="sync",WEB_CONCURRENCY="2"
+
+# Si fuera FastAPI/Starlette (ASGI), cambia el worker:
+# --set-env-vars=APP_MODULE="run:app",WORKER_CLASS="uvicorn.workers.UvicornWorker",WEB_CONCURRENCY="2"
+
+
+Con eso quedas desplegado sin depender de Cloud Build.
+Logs en vivo:
+
+gcloud logs tail --region=${REGION} --service=${SERVICE_NAME}
+
+
+#### ESTE COMANDO ES EL BUENO PARA DEPLOYAR EL BAKCEND
+gcloud run deploy backend \
+  --source . \
+  --region us-central1 \
+  --allow-unauthenticated
+
+
+
+https://chatgpt.com/c/68a0e765-067c-8322-87dd-fe20d447da9f
+
+
+

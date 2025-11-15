@@ -1,0 +1,52 @@
+# ========== Build stage (deps caché) ==========
+FROM python:3.12-slim AS base
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PORT=8080
+
+WORKDIR /app
+
+# Dependencias del sistema (ajusta si usas psycopg2, pillow, etc.)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential curl && rm -rf /var/lib/apt/lists/*
+
+# ======= Layer de dependencias (mejor caché) =======
+FROM base AS deps
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+# ======= Runtime =======
+FROM python:3.12-slim AS runtime
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PORT=8080
+
+# Usuario no root
+RUN useradd -m appuser
+USER appuser
+
+WORKDIR /app
+
+# Copiamos dependencias del layer previo
+COPY --from=deps /usr/local/lib/python3.12 /usr/local/lib/python3.12
+COPY --from=deps /usr/local/bin /usr/local/bin
+
+# Copiamos el código
+COPY --chown=appuser:appuser app ./app
+COPY --chown=appuser:appuser run.py .
+COPY --chown=appuser:appuser *.py .  # por si tienes otros módulos al nivel raíz (opcional)
+
+EXPOSE 8080
+
+# ---- Comandos de arranque ----
+# Flask -> si tu run.py crea "app = Flask(__name__)"
+# CMD ["gunicorn","-k","gthread","run:app","--bind","0.0.0.0:8080","--threads","8","--timeout","0"]
+# FastAPI -> si tu run.py crea "app = FastAPI()"
+# CMD ["gunicorn","-k","uvicorn.workers.UvicornWorker","run:app","--bind","0.0.0.0:8080","--workers","2","--timeout","0"]
+
+# Auto-detección simple: intenta importar uvicorn; si falla usa gthread (Flask)
+CMD python -c "import importlib.util; exit(0 if importlib.util.find_spec('uvicorn') else 1)" \
+  && gunicorn -k uvicorn.workers.UvicornWorker run:app --bind 0.0.0.0:8080 --workers 2 --timeout 0 \
+  || gunicorn -k gthread run:app --bind 0.0.0.0:8080 --threads 8 --timeout 0

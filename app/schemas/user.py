@@ -6,7 +6,7 @@ class UserSchema(Schema):
     id = fields.Integer(dump_only=True)
     username = fields.String(required=True, validate=validate.Length(min=3, max=50))
     email = fields.Email(required=True)
-    password_hash = fields.String(required=True, validate=validate.Length(min=8), load_only=True)
+    password_hash = fields.String(required=True, validate=validate.Length(min=3), load_only=True)
     role = fields.String(validate=validate.OneOf(['admin', 'monitor', 'user']), default='user')
     created_at = fields.DateTime(dump_only=True)
     updated_at = fields.DateTime(dump_only=True)

@@ -54,6 +54,26 @@ def create_app(config_name='development'):
     # Register blueprints
     register_blueprints(app)
 
+
+
+    @app.route("/health/db", methods=["GET"])
+    def health_db():
+        try:
+            # Intentamos abrir una conexión
+            with db.engine.connect() as conn:
+                result = conn.execute(text("SELECT 1"))
+                value = result.scalar()  # Debe regresar 1
+
+            return jsonify({
+                "status": "ok",
+                "db_response": value
+            }), 200
+
+        except Exception as e:
+            return jsonify({
+                "status": "error",
+                "message": str(e)
+            }), 500
     # Configure Swagger UI
     swagger_blueprint = get_swaggerui_blueprint(
         app.config['SWAGGER_URL'],
@@ -64,6 +84,16 @@ def create_app(config_name='development'):
     )
     app.register_blueprint(swagger_blueprint, url_prefix=app.config['SWAGGER_URL'])
     log_endpoints(app)
+
+# -------------------------
+# HEALTH CHECK
+# -------------------------
+    @app.route("/health", methods=["GET"])
+    def health_check():
+        return jsonify({
+            "status": "ok",
+            "message": "API funcionando correctamente"
+        }), 200
 
     # Create a route to serve the Swagger JSON
     @app.route('/static/swagger.json')
