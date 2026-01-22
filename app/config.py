@@ -44,23 +44,23 @@ class TestingConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///test.db'
 
 class ProductionConfig(Config):
-
     driver = "ODBC Driver 17 for SQL Server"
+#     driver = "ODBC Driver 17 for SQL Server"
 
-    if os.environ.get("DB_HOST"):
-        # Producción en Cloud Run
-        self.SQLALCHEMY_DATABASE_URI = (
-            f"mssql+pyodbc://{self.DB_USER}:{self.DB_PASS}"
-            f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
-            f"?driver={driver}"
-        )
-    else:
-        # Desarrollo local
-        self.SQLALCHEMY_DATABASE_URI = (
-            f"mssql+pyodbc://{self.DB_USER}:{self.DB_PASS}"
-            f"@localhost:{self.DB_PORT}/{self.DB_NAME}"
-            f"?driver={driver}"
-        )
+#     if os.environ.get("DB_HOST"):
+#         # Producción en Cloud Run
+#         self.SQLALCHEMY_DATABASE_URI = (
+#             f"mssql+pyodbc://{self.DB_USER}:{self.DB_PASS}"
+#             f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+#             f"?driver={driver}"
+#         )
+#     else:
+#         # Desarrollo local
+#         self.SQLALCHEMY_DATABASE_URI = (
+#             f"mssql+pyodbc://{self.DB_USER}:{self.DB_PASS}"
+#             f"@localhost:{self.DB_PORT}/{self.DB_NAME}"
+#             f"?driver={driver}"
+#         )
 
     # # Use Cloud SQL for production
     # def __init__(self):
