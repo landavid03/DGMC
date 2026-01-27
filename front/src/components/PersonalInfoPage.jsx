@@ -261,7 +261,7 @@ const PersonalInfoPage = () => {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-light mb-6">Información Personal</h1>
+      <h1 className="pl-14 md:pl-0 text-2xl font-light mb-6">Información Personal</h1>
 
       <div className="space-y-6">
         {/* Información básica */}

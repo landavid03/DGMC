@@ -217,7 +217,7 @@ const InsurancePage = () => {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-xl font-light">Insurance Policies</h1>
+      <h1 className="pl-14 md:pl-0 text-xl font-light">Polizas de seguro</h1>
 
       {loading && <p>Loading...</p>}
       {error && <p className="text-red-500">{error}</p>}
@@ -231,14 +231,14 @@ const InsurancePage = () => {
             <div className="flex-1">
               <h2 className="font-semibold">{policy.company}</h2>
               <p className="text-sm text-gray-700">
-                <strong>Policy #:</strong> {policy.policy_number}<br />
-                <strong>Coverage:</strong> {policy.coverage_type}<br />
+                <strong>Poliza #:</strong> {policy.policy_number}<br />
+                <strong>Cobertura:</strong> {policy.coverage_type}<br />
                 <strong>Vehículo:</strong> {getVehicleNameById(policy.vehicle_id)}<br />
-                <strong>Start:</strong> {policy.start_date}<br />
-                <strong>End:</strong> {policy.end_date}<br />
+                <strong>Inicia:</strong> {policy.start_date}<br />
+                <strong>Termina:</strong> {policy.end_date}<br />
                 {policy.notes && (
                   <>
-                    <strong>Notes:</strong> {policy.notes}<br />
+                    <strong>Notas:</strong> {policy.notes}<br />
                   </>
                 )}
                 {policy.file_url && (
@@ -259,13 +259,13 @@ const InsurancePage = () => {
                 className="px-3 py-1 text-white bg-blue-500 rounded hover:bg-blue-600"
                 onClick={() => handleEdit(policy)}
               >
-                Edit
+                Editar
               </button>
               <button
                 className="px-3 py-1 text-white bg-red-500 rounded hover:bg-red-600"
                 onClick={() => handleDelete(policy.id)}
               >
-                Delete
+                Eliminar
               </button>
             </div>
           </div>

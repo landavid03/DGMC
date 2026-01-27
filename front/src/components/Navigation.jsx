@@ -1,7 +1,9 @@
 import React from "react";
 import {
+  Home,
   Car,
   Phone,
+  Motorbike,
   Shield,
   User,
   FileText,
@@ -24,31 +26,31 @@ const Navigation = ({
     const base = [
       {
         id: "dashboard",
-        label: "Dashboard",
-        icon: Car,
+        label: "Inicio",
+        icon: Home,
         roles: ["admin", "monitor", "user"],
       },
       {
         id: "vehicles",
-        label: "My Vehicles",
-        icon: Car,
+        label: "Mis motos",
+        icon: Motorbike,
         roles: ["user", "admin", "monitor"]
       },
       {
         id: "emergency-contacts",
-        label: "My Emergency Contacts",
+        label: "Contactos Emergencia",
         icon: Phone,
         roles: ["user", "admin", "monitor"],
       },
       {
         id: "personal-info",
-        label: "My Personal Info",
+        label: "Informacion Personal",
         icon: User,
         roles: ["user", "admin", "monitor"],
       },
       {
         id: "insurance",
-        label: "My Insurance",
+        label: "Seguros",
         icon: Shield,
         roles: ["user", "admin", "monitor"]
       },
@@ -93,11 +95,11 @@ const Navigation = ({
       </div>
 
       <div
-        className={`fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-sm transform \${sidebarOpen ? "translate-x-0" : "-translate-x-full"} transition-transform duration-200 ease-in-out md:translate-x-0 md:static md:inset-0`}
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-sm transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} transition-transform duration-200 ease-in-out md:translate-x-0 md:static md:inset-0`}
       >
         <div className="flex items-center justify-center h-16 border-b border-gray-200">
           <Car className="h-6 w-6 mr-2 text-gray-800" />
-          <span className="text-lg font-light">Vehicle Mgmt</span>
+          <span className="text-lg font-light">Dioses Guerreros MC</span>
         </div>
         <nav className="mt-6">
           {getMenuItems().map((item) => (
@@ -107,7 +109,7 @@ const Navigation = ({
                 setCurrentPage(item.id);
                 setSidebarOpen(false);
               }}
-              className={`w-full flex items-center px-6 py-3 text-left transition-colors \${currentPage === item.id ? "bg-gray-50 text-gray-900 border-r-2 border-gray-900" : "text-gray-600 hover:bg-gray-50"}`}
+              className={`w-full flex items-center px-6 py-3 text-left transition-colors ${currentPage === item.id ? "bg-gray-50 text-gray-900 border-r-2 border-gray-900" : "text-gray-600 hover:bg-gray-50"}`}
             >
               <item.icon className="h-4 w-4 mr-3" />
               <span className="text-sm">{item.label}</span>
@@ -131,7 +133,7 @@ const Navigation = ({
             className="flex items-center w-full px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
           >
             <LogOut className="h-3 w-3 mr-2" />
-            <span className="text-xs">Sign out</span>
+            <span className="text-xs">Cerrar Sesion</span>
           </button>
         </div>
       </div>

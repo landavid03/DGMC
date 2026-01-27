@@ -108,7 +108,7 @@ const EmergencyContactsPage = () => {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-xl font-light">Emergency Contacts</h1>
+      <h1 className="pl-14 md:pl-0 text-xl font-light">Contactos de Emergencia</h1>
 
 
 
@@ -124,11 +124,11 @@ const EmergencyContactsPage = () => {
             <div>
               <h2 className="font-semibold">{contact.name}</h2>
               <p className="text-sm text-gray-700">
-                <strong>Relationship:</strong> {contact.relationship}<br />
-                <strong>Phone:</strong> {contact.phone_number}<br />
+                <strong>Relacion:</strong> {contact.relationship}<br />
+                <strong>Telefono:</strong> {contact.phone_number}<br />
                 {contact.alternative_phone && (
                   <>
-                    <strong>Alt Phone:</strong> {contact.alternative_phone}<br />
+                    <strong>Otro telefono:</strong> {contact.alternative_phone}<br />
                   </>
                 )}
                 {contact.email && (
@@ -138,7 +138,7 @@ const EmergencyContactsPage = () => {
                 )}
                 {contact.notes && (
                   <>
-                    <strong>Notes:</strong> {contact.notes}<br />
+                    <strong>Notas:</strong> {contact.notes}<br />
                   </>
                 )}
               </p>
@@ -148,13 +148,13 @@ const EmergencyContactsPage = () => {
                 className="px-3 py-1 text-white bg-blue-500 rounded"
                 onClick={() => handleEdit(contact)}
               >
-                Edit
+                Editar
               </button>
               <button
                 className="px-3 py-1 text-white bg-red-500 rounded"
                 onClick={() => handleDelete(contact.id)}
               >
-                Delete
+                Eliminar
               </button>
             </div>
           </div>

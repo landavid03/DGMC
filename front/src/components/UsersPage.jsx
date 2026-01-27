@@ -149,7 +149,7 @@ const UsersPage = () => {
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
-      <h1 className="text-xl font-light mb-4">User Management</h1>
+      <h1 className="pl-14 md:pl-0 text-xl font-light mb-4">User Management</h1>
 
       {loading && <p>Loading users...</p>}
       {error && <p className="text-red-500">{error}</p>}

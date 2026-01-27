@@ -26,6 +26,8 @@ const VehiclesPage = () => {
 
   const [form, setForm] = useState(initialFormState);
   const [editingId, setEditingId] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+
 
   const fetchVehicles = async () => {
     try {
@@ -38,6 +40,7 @@ const VehiclesPage = () => {
       if (!res.ok) throw new Error("Error fetching vehicles");
       const data = await res.json();
       setVehicles(data.vehicles);
+      console.log("Respuesta del backend:", data);
     } catch (err) {
       setError("Error fetching vehicles.");
     } finally {
@@ -51,12 +54,45 @@ const VehiclesPage = () => {
 
   const handleInputChange = (e) => {
     const { name, value, files } = e.target;
-    if (name === "image") {
-      setForm((prev) => ({ ...prev, image: files[0] }));
+  
+    if (name === "vehicle_files") {
+      if (!files || files.length === 0) return;
+  
+      // Validar máximo 4 archivos
+      if (files.length > 4) {
+        alert('Solo puedes subir un máximo de 4 fotos');
+        e.target.value = '';
+        return;
+      }
+  
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+      const maxSize = 10 * 1024 * 1024; // 10MB
+  
+      // Validar cada archivo
+      for (let file of files) {
+        if (!allowedTypes.includes(file.type)) {
+          alert(`El archivo "${file.name}" no es JPG, JPEG o PNG`);
+          e.target.value = '';
+          return;
+        }
+  
+        if (file.size > maxSize) {
+          alert(`El archivo "${file.name}" supera los 10MB`);
+          e.target.value = '';
+          return;
+        }
+      }
+  
+      setForm(prev => ({
+        ...prev,
+        vehicle_files: Array.from(files),
+      }));
+  
     } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
+      setForm(prev => ({ ...prev, [name]: value }));
     }
   };
+  
 
 
   const handleSubmit = async (e) => {
@@ -69,11 +105,28 @@ const VehiclesPage = () => {
     const method = editingId ? "PUT" : "POST";
 
     const formData = new FormData();
+
     Object.entries(form).forEach(([key, value]) => {
-      if (value !== null) {
-        formData.append(key, value);
+      if (value === null) return;
+
+      // Caso: múltiples archivos
+      if (key === 'vehicle_files' && Array.isArray(value)) {
+        value.forEach((file) => {
+          formData.append('vehicle_files', file);
+        });
+        return;
       }
+
+      // Caso: un solo archivo
+      if (value instanceof File) {
+        formData.append(key, value);
+        return;
+      }
+
+      // Otros campos normales
+      formData.append(key, value);
     });
+
 
     formData.set("user_id", user.id); // Asegurar el user_id
 
@@ -135,7 +188,7 @@ const VehiclesPage = () => {
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
-      <h1 className="text-xl font-light mb-4">Vehicles</h1>
+      <h1 className="pl-14 md:pl-0 text-xl font-light mb-4">Vehicles</h1>
 
       {loading && <p>Loading...</p>}
       {error && <p className="text-red-500">{error}</p>}
@@ -152,37 +205,39 @@ const VehiclesPage = () => {
               <ul className="text-sm text-gray-700 space-y-1">
                 <li><strong>Description:</strong> {vehicle.description}</li>
                 <li><strong>Color:</strong> {vehicle.color}</li>
-                <li><strong>License Plate:</strong> {vehicle.license_plate}</li>
-                <li><strong>Model:</strong> {vehicle.model}</li>
-                <li><strong>Year:</strong> {vehicle.year}</li>
+                <li><strong>Placas:</strong> {vehicle.license_plate}</li>
+                <li><strong>Modelo:</strong> {vehicle.model}</li>
+                <li><strong>Año:</strong> {vehicle.year}</li>
                 <li><strong>VIN:</strong> {vehicle.vin}</li>
-                <li><strong>Notes:</strong> {vehicle.notes}</li>
-                <li><strong>User ID:</strong> {vehicle.user_id}</li>
-                <li><strong>Created At:</strong> {vehicle.created_at || "N/A"}</li>
-                <li><strong>Updated At:</strong> {vehicle.updated_at || "N/A"}</li>
+                <li><strong>Notas:</strong> {vehicle.notes}</li>
+                {/* <li><strong>User ID:</strong> {vehicle.user_id}</li> */}
+                {/* <li><strong>Created At:</strong> {vehicle.created_at || "N/A"}</li> */}
+                {/* <li><strong>Updated At:</strong> {vehicle.updated_at || "N/A"}</li> */}
               </ul>
             </div>
-            {vehicle.image_url && (
+            {vehicle.image && (
               <div className="w-48 h-32 overflow-hidden rounded shadow">
                 <img
-                  src={vehicle.image_url}
-                  alt={`Imagen de ${vehicle.name}`}
+                  src={vehicle.image}
+                  alt={`Imagen de ${vehicle.name ?? 'vehículo'}`}
                   className="object-cover w-full h-full"
+                  referrerPolicy="no-referrer"
+
                 />
               </div>
             )}
             <div className="space-x-2">
-              <button
+              {/* <button
                 className="px-3 py-1 text-white bg-blue-500 rounded"
                 onClick={() => handleEdit(vehicle)}
               >
                 Edit
-              </button>
+              </button> */}
               <button
                 className="px-3 py-1 text-white bg-red-500 rounded"
                 onClick={() => handleDelete(vehicle.id)}
               >
-                Delete
+                Eliminar
               </button>
             </div>
           </div>
@@ -244,18 +299,36 @@ const VehiclesPage = () => {
           </div>
 
           {/* Campo para imagen */}
-          {/* <div>
+          <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700">
-              Imagen del vehículo
+              Fotos {editingId ? '(opcional - mantener vacío para no cambiar)' : ''}
             </label>
+
             <input
               type="file"
-              name="image"
-              accept="image/*"
+              name="vehicle_files"
+              multiple
+              accept=".jpg,.jpeg,.png"
+              disabled={isUploading}
               onChange={handleInputChange}
-              className="mt-1 block w-full text-sm text-gray-700 border border-gray-300 rounded-md shadow-sm file:bg-blue-600 file:text-white file:border-none file:px-4 file:py-2 file:rounded file:mr-4 hover:file:bg-blue-700"
+              className="mt-1 block w-full text-sm text-gray-700 border border-gray-300 rounded-md shadow-sm
+                        file:bg-blue-600 file:text-white file:border-none file:px-4 file:py-2
+                        file:rounded file:mr-4 hover:file:bg-blue-700 disabled:bg-gray-100"
             />
-          </div> */}
+
+            <p className="text-xs text-gray-500 mt-1">
+              Máximo 4 fotos. Formatos permitidos: JPG, PNG. Tamaño máximo: 10MB por imagen.
+            </p>
+
+            {form.vehicle_files?.length > 0 && (
+              <ul className="mt-2 text-sm text-green-600 list-disc list-inside">
+                {form.vehicle_files.map((file, index) => (
+                  <li key={index}>{file.name}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+
 
           {/* Botones */}
           <div className="flex gap-4 mt-4">

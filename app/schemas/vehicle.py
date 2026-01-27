@@ -15,7 +15,7 @@ class VehicleSchema(Schema):
     notes = fields.String()
     created_at = fields.DateTime(dump_only=True)
     updated_at = fields.DateTime(dump_only=True)
-
+    image = fields.String()
     @validates('year')
     def validate_year(self, value):
         current_year = datetime.datetime.now().year

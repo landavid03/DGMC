@@ -181,7 +181,7 @@ const AdminVehiclesPage = () => {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <h1 className="text-2xl font-light mb-6">Administración de Vehículos</h1>
+      <h1 className="pl-14 md:pl-0 text-2xl font-light mb-6">Administración de Vehículos</h1>
 
       {loading && <p>Loading...</p>}
       {error && <p className="text-red-500">{error}</p>}

@@ -20,7 +20,7 @@ const MainApp = () => {
   const renderPage = () => {
     switch (currentPage) {
       case "dashboard":
-        return <Dashboard />;
+        return <Dashboard setCurrentPage={setCurrentPage}  />;
       case "vehicles":
         return <VehiclesPage />;
       case "emergency-contacts":
@@ -34,7 +34,7 @@ const MainApp = () => {
       case "all-users":
             return <UsersPage />;
       default:
-        return <Dashboard />;
+        return <Dashboard setCurrentPage={setCurrentPage} />;
     }
   };
 
