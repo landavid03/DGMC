@@ -216,10 +216,10 @@ def create_vehicle():
         description=data.get('description', ''),
         make=data['make'],
         color=data['color'],
-        license_plate=data['license_plate'],
+        license_plate=data['license_plate',''],
         model=data['model'],
-        year=data['year'],
-        vin=data['vin'],
+        year=data['year',''],
+        vin=data['vin',''],
         notes=data.get('notes', ''),
         user_id=data['user_id']
     )
