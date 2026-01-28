@@ -5,10 +5,11 @@ from flask_cors import CORS
 from flask import Flask, request, make_response
 
 FRONTEND_ORIGINS = {
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    "http://localhost:5555",
+    "http://127.0.0.1:5555",
     "http://localhost:8080",
     "http://127.0.0.1:8080",
+    "*"
     # agrega aquí el dominio real de tu front si aplica, p.ej. "https://mi-front.com"
 }
 app = create_app(os.getenv('FLASK_ENV') or 'development')
@@ -55,7 +56,7 @@ def add_cors_headers(response):
         response.headers.setdefault("Access-Control-Allow-Headers", "Authorization, Content-Type")
         response.headers.setdefault("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
     return response
-app.run(host='0.0.0.0', port=int(os.getenv('PORT', 8080)))
+app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5555)))
 
 
 # Inicializar migraciones

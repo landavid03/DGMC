@@ -28,6 +28,7 @@ const VehiclesPage = () => {
   const [editingId, setEditingId] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchVehicles = async () => {
     try {
@@ -97,6 +98,7 @@ const VehiclesPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return; // 🔒 anti double submit
 
     const url = editingId
       ? `${API_URL}/api/vehicles/${editingId}`
@@ -131,6 +133,8 @@ const VehiclesPage = () => {
     formData.set("user_id", user.id); // Asegurar el user_id
 
     try {
+      setIsSubmitting(true);
+
       const res = await fetch(url, {
         method,
         headers: {
@@ -146,7 +150,10 @@ const VehiclesPage = () => {
       fetchVehicles();
     } catch (err) {
       alert("Failed to save vehicle.");
+    } finally{
+      setIsSubmitting(false);
     }
+
   };
 
   const handleEdit = (vehicle) => {
@@ -244,7 +251,8 @@ const VehiclesPage = () => {
         ))}
 
         {/* Formulario */}
-        <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-xl p-6 space-y-6 mt-8 border border-gray-200">
+        <form onSubmit={handleSubmit} className={`relative bg-white shadow-md rounded-xl p-6 space-y-6 mt-8 border border-gray-200
+    ${isSubmitting ? "opacity-60 pointer-events-none" : ""}`}>
           <h2 className="text-xl font-semibold text-gray-800">
             {editingId ? "Editar Vehículo" : "Registrar Nuevo Vehículo"}
           </h2>
@@ -258,7 +266,7 @@ const VehiclesPage = () => {
               { name: "year", label: "Año" },
               { name: "color", label: "Color" },
               { name: "license_plate", label: "Placa" },
-              { name: "vin", label: "VIN" },
+              { name: "vin", label: "Serie" },
             ].map((field) => (
               <div key={field.name}>
                 <label className="block text-sm font-medium text-gray-700">
@@ -334,10 +342,16 @@ const VehiclesPage = () => {
           <div className="flex gap-4 mt-4">
             <button
               type="submit"
-              className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700"
+              className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-white
+              ${isSubmitting ? "bg-gray-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700"}`}
             >
-              {editingId ? "Actualizar vehículo" : "Crear vehículo"}
-            </button>
+              {isSubmitting
+                ? "Guardando..."
+                : editingId
+                ? "Actualizar vehículo"
+                : "Crear vehículo"}
+                </button>
+
             {editingId && (
               <button
                 type="button"
@@ -348,6 +362,34 @@ const VehiclesPage = () => {
               </button>
             )}
           </div>
+          {isSubmitting && (
+        
+        <div className="absolute inset-0 bg-white/70 flex items-center justify-center rounded-xl">
+            <div className="flex flex-col items-center gap-2">
+              <svg
+                className="animate-spin h-8 w-8 text-green-600"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8z"
+                />
+              </svg>
+              <span className="text-sm text-gray-600">Subiendo vehículo…</span>
+            </div>
+          </div>
+        )}
         </form>
 
       </div>

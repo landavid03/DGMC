@@ -44,12 +44,13 @@ def get_user_personal_info(user_id):
             'success': False,
             'personal_info': ''
         }), 400
+
 @personal_info_bp.route('/', methods=['POST'])
 @token_required
 def create_personal_info():
     current_user = get_jwt_identity()
     data = request.get_json()
-
+    print(data)
     # Verificar si el usuario ya tiene información personal
     existing_info = PersonalInfo.query.filter_by(user_id=current_user['id']).first()
     if existing_info:
@@ -71,11 +72,12 @@ def create_personal_info():
 
     db.session.add(new_info)
     db.session.commit()
+    emergency_contact_schema = PersonalInfoSchema()
 
     return jsonify({
         'success': True,
         'message': 'Información personal creada correctamente',
-        'personal_info': PersonalInfosSchema.dump(new_info)
+        'personal_info': emergency_contact_schema.dump(new_info)
     }), 201
 
 @personal_info_bp.route('/<int:info_id>', methods=['PUT'])

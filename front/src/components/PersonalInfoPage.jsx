@@ -162,7 +162,14 @@ const PersonalInfoPage = () => {
   // Función para crear nueva información personal
   const createPersonalInfo = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/personal-info`, {
+      console.log(API_URL);
+      console.log("API_URL:", API_URL);
+      console.log("Payload:", {
+        user_id: user.id,
+        ...form,
+        age: form.age ? parseInt(form.age) : null,
+      });
+      const response = await fetch(`${API_URL}/api/personal-info/`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
