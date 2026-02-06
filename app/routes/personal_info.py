@@ -59,16 +59,19 @@ def create_personal_info():
     # Validar datos
     if not 'age' in data or not 'blood_type' in data or not 'address' in data:
         return jsonify({'success': False, 'message': 'Faltan campos requeridos'}), 400
-
-    new_info = PersonalInfo(
-        user_id=current_user['id'],
-        age=data['age'],
-        first_name=data['first_name'],
-        last_name=data['last_name'],
-        blood_type=data['blood_type'],
-        address=data['address'],
-        allergies=data.get('allergies', '')
-    )
+    new_info = PersonalInfo(user_id=current_user['id'])
+    for key, value in data.items():
+        if hasattr(new_info, key):
+            setattr(new_info, key, value)
+    # new_info = PersonalInfo(
+    #     user_id=current_user['id'],
+    #     age=data['age'],
+    #     first_name=data['first_name'],
+    #     last_name=data['last_name'],
+    #     blood_type=data['blood_type'],
+    #     address=data['address'],
+    #     allergies=data.get('allergies', '')
+    # )
 
     db.session.add(new_info)
     db.session.commit()

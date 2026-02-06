@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import imageCompression from "browser-image-compression";
 
 const initialFormState = {
   name: "",
@@ -15,20 +16,64 @@ const initialFormState = {
   image: null, // NUEVO
 
 };
+const requiredFields = [
+  "make",
+  "model",
+  "year",
+  "color",
+  "license_plate",
+  "vin",
+];
 
 const API_URL = process.env.REACT_APP_API_URL;
+
+
+const compressImage = async (file) => {
+  const options = {
+    maxSizeMB: 1,            // tamaño final máximo por imagen
+    maxWidthOrHeight: 1920,  // reduce resolución grande
+    useWebWorker: true,
+    fileType: "image/jpeg",
+  };
+
+  try {
+    const compressedBlob = await imageCompression(file, options);
+    const originalName = file.name.split(".")[0];
+    const newFileName = `${originalName}.jpg`;
+    const compressedFile = new File(
+      [compressedBlob],
+      newFileName,
+      { type: "image/jpeg" }
+    );
+
+    console.log(
+      `Original: ${(file.size / 1024 / 1024).toFixed(2)}MB`,
+      `→ Compressed: ${(compressedFile.size / 1024 / 1024).toFixed(2)}MB`
+    );
+
+    return compressedFile;
+  } catch (error) {
+    console.error("Compression error:", error);
+    return file; // fallback si falla
+  }
+};
+
+
 
 const VehiclesPage = () => {
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { user, token } = useAuth();
+  const [errors, setErrors] = useState({});
 
   const [form, setForm] = useState(initialFormState);
   const [editingId, setEditingId] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imageError, setImageError] = useState("");
+  const [isCompressing, setIsCompressing] = useState(false);
 
   const fetchVehicles = async () => {
     try {
@@ -49,20 +94,27 @@ const VehiclesPage = () => {
     }
   };
 
+
+
   useEffect(() => {
     fetchVehicles();
   }, []);
 
-  const handleInputChange = (e) => {
+
+  
+  const handleInputChange = async (e) => {
     const { name, value, files } = e.target;
   
     if (name === "vehicle_files") {
       if (!files || files.length === 0) return;
-  
+      setIsCompressing(true);
+    try{
       // Validar máximo 4 archivos
       if (files.length > 4) {
         alert('Solo puedes subir un máximo de 4 fotos');
         e.target.value = '';
+        setIsCompressing(false);
+
         return;
       }
   
@@ -84,17 +136,60 @@ const VehiclesPage = () => {
         }
       }
   
+      const compressedFiles = [];
+
+      for (let file of files) {
+        const compressed = await compressImage(file);
+
+        console.log(
+          `Imagen comprimida: ${compressed.name} - ${(compressed.size / 1024 / 1024).toFixed(2)} MB`
+        );
+        compressedFiles.push(compressed);
+      }
+      const totalSize = compressedFiles.reduce(
+        (acc, file) => acc + file.size,
+        0
+      );
+      
+      console.log(
+        "Peso total imágenes:",
+        (totalSize / 1024 / 1024).toFixed(2),
+        "MB"
+      );
       setForm(prev => ({
         ...prev,
-        vehicle_files: Array.from(files),
+        vehicle_files: compressedFiles,
       }));
-  
+      setErrors((prev) => ({ ...prev, vehicle_files: null }));
+    } finally{
+      setIsCompressing(false); // 🔥 detener spinner
+    }
+    
     } else {
       setForm(prev => ({ ...prev, [name]: value }));
+      setErrors((prev) => ({ ...prev, [name]: null }));
+
     }
   };
   
-
+  const validateForm = () => {
+    const newErrors = {};
+  
+    requiredFields.forEach((field) => {
+      if (!form[field] || form[field].toString().trim() === "") {
+        newErrors[field] = "Este campo es obligatorio";
+      }
+    });
+  
+    if (!editingId && (!form.vehicle_files || form.vehicle_files.length === 0)) {
+      newErrors.vehicle_files = "Debes subir al menos una imagen";
+    }
+  
+    setErrors(newErrors);
+  
+    return Object.keys(newErrors).length === 0;
+  };
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -103,6 +198,10 @@ const VehiclesPage = () => {
     const url = editingId
       ? `${API_URL}/api/vehicles/${editingId}`
       : `${API_URL}/api/vehicles/`;
+
+
+    if (!validateForm()) return;
+
 
     const method = editingId ? "PUT" : "POST";
 
@@ -143,14 +242,23 @@ const VehiclesPage = () => {
         body: formData,
       });
 
-      if (!res.ok) throw new Error("Error saving vehicle");
+      if (!res.ok) {
+        const text = await res.text();
+        alert("Backend error:", res.status, text);
+        throw new Error(`Error saving vehicle: ${text}`);
+      }
 
       setForm(initialFormState);
       setEditingId(null);
       fetchVehicles();
     } catch (err) {
-      alert("Failed to save vehicle.");
-    } finally{
+      console.error('Fetch error:', err);
+      alert(`Error: Prueba ${err}`);
+
+      if (!err.message.includes('Error saving vehicle')) {
+        // error de red, CORS, etc.
+        alert(`Error de red o CORS: ${err.message}`);
+      }    } finally{
       setIsSubmitting(false);
     }
 
@@ -271,6 +379,11 @@ const VehiclesPage = () => {
               <div key={field.name}>
                 <label className="block text-sm font-medium text-gray-700">
                   {field.label}
+                  {errors[field.name] && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {errors[field.name]}
+                  </p>
+                )}
                 </label>
                 <input
                   type="text"
@@ -323,9 +436,37 @@ const VehiclesPage = () => {
                         file:bg-blue-600 file:text-white file:border-none file:px-4 file:py-2
                         file:rounded file:mr-4 hover:file:bg-blue-700 disabled:bg-gray-100"
             />
+{isCompressing && (
+  <div className="flex items-center gap-2 mt-2 text-blue-600">
+    <svg
+      className="animate-spin h-5 w-5"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8z"
+      />
+    </svg>
+
+    <span className="text-sm">
+      Subiendo imágenes...
+    </span>
+  </div>
+)}
 
             <p className="text-xs text-gray-500 mt-1">
-              Máximo 4 fotos. Formatos permitidos: JPG, PNG. Tamaño máximo: 10MB por imagen.
+              Máximo 4 fotos. Formatos permitidos: JPG,JPEG , PNG. Tamaño máximo: 10MB por imagen.
             </p>
 
             {form.vehicle_files?.length > 0 && (
